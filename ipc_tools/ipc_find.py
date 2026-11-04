@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# ipc_find.py: everything about one WebKit IPC message or one interface.
+# Show everything about one WebKit IPC message or one interface.
 #
-#   ipc_find.py PixelStorei
-#   ipc_find.py RemoteGraphicsContextGL::PixelStorei
-#   ipc_find.py RemoteGraphicsContextGL    # the interface's messages
-#   ipc_find.py --repo ~/WebKit --ref WebKit-7621.2.5.11.8 \
-#       --build-dir out_ipc_gen PixelStorei
+#   $ ipc_find.py PixelStorei
+#   $ ipc_find.py RemoteGraphicsContextGL::PixelStorei
+#   $ ipc_find.py RemoteGraphicsContextGL    # the interface's messages
+#   $ ipc_find.py --repo ~/WebKit --ref WebKit-7621.2.5.11.8 \
+#         --build-dir out_ipc_gen PixelStorei
 #
 # For a message it prints
 #   1. its declaration: the *.messages.in file and line
@@ -44,13 +44,16 @@ CODE_FILES = [
 # [EnabledBy=X] void PixelStorei(uint32_t pname, int32_t param)
 MSG_LINE = r"^\s*(\[[^]]*\]\s*)*(void\s+)?{name}\s*\("
 
+
 def proc_of(path):
     return next((p for d, p in PROC if path.startswith(d)), "other")
+
 
 def git(repo, *args):
     r = subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True)
 
     return r.stdout
+
 
 # Lines that contain the plain string `fixed` and match the regex `rx`:
 # git grep -E is POSIX ERE, which lacks \s, \w and \b, so git finds the
@@ -68,17 +71,20 @@ def grep(repo, ref, fixed, rx, *paths):
 
     return hits
 
+
 # The interface's line: messages -> RemoteGraphicsContextGL Stream {
 def find_interfaces(repo, ref, name):
     rx = rf"messages\s*->\s*{re.escape(name)}\b"
 
     return grep(repo, ref, name, rx, *MSG_FILES)
 
+
 # The message's line: void PixelStorei(uint32_t pname, int32_t param)
 def find_declarations(repo, ref, msg):
     rx = MSG_LINE.format(name=re.escape(msg))
 
     return grep(repo, ref, msg, rx, *MSG_FILES)
+
 
 # Where the method is defined or declared, not called:
 # void RemoteGraphicsContextGL::pixelStorei(...)   out of the class
@@ -92,12 +98,14 @@ def find_definitions(repo, ref, method):
     return [h for h in hits
             if not h[2].strip().startswith(("//", "send", "return send"))]
 
+
 # The message's type, as senders build it:
 # send(Messages::RemoteGraphicsContextGL::PixelStorei(pname, param))
 def find_senders(repo, ref, receiver, msg):
     name = f"Messages::{receiver}::{msg}"
 
     return grep(repo, ref, name, rf"{re.escape(name)}\b", *CODE_FILES)
+
 
 # "Synchronous" in the attributes; a reply follows "->"; else neither
 def message_kind(line):
@@ -172,6 +180,7 @@ def handler_from_build(build_dir, receiver, message):
             return f"{m.group(1)}::{m.group(2)}", f
 
     return None
+
 
 def main():
     ap = argparse.ArgumentParser(
@@ -249,6 +258,7 @@ def main():
                 print(f"        {p}:{l}: {t[:100]}")
 
         print()
+
 
 if __name__ == "__main__":
     main()

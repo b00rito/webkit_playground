@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ipc_generate.py: WebKit's generated IPC code for any ref, no build.
+# Generate WebKit's IPC code for any ref without a build.
 #
 #   $ ipc_generate.py <webkit-checkout> <ref> <outdir> [--verbose]
 #   $ ipc_generate.py ~/WebKit WebKit-7621.2.5.11.8 out_ipc_gen
@@ -27,8 +27,10 @@ import tarfile
 import tempfile
 from pathlib import Path
 
+
 def git(repo, *args):
     return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True).stdout
+
 
 # Copy what the generator needs at <ref> into dest: its scripts, the
 # makefile that lists the interfaces, and every *.messages.in.
@@ -42,6 +44,7 @@ def export_sources(repo, ref, dest):
 
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         tar.extractall(dest, filter="data")
+
 
 # MESSAGE_RECEIVERS from DerivedSources.make, relative to Source/WebKit.
 # Some are bare names (e.g. LogStream) that make finds through VPATH; we
@@ -71,10 +74,12 @@ def message_receivers(source):
 
     return receivers, skipped
 
+
 def log_written_files(out, before):
     for path in sorted(out.iterdir()):
         if before.get(path.name) != path.stat().st_mtime_ns:
             print(f"\t\t[+] Wrote {path.name}")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -116,6 +121,7 @@ def main():
             log_written_files(out, before)
 
     print(f"[+] Generated the code of {len(receivers)} interfaces in {out}")
+
 
 if __name__ == "__main__":
     main()
