@@ -74,4 +74,37 @@ should be the output directory of `ipc_generate.py` or a WebKit build's
 products directory such as `WebKitBuild/Debug`. Without `--build-dir`, the
 handler is guessed from WebKit's naming convention and the output says so.
 
+`ipc_map.py` maps every IPC interface and message of a tag or commit,
+with the direction of each interface. It runs two helpers that must sit
+next to it. `extract_ipc.py` parses every `*.messages.in` and
+`build_ipc_tables.py` merges the result with the places that send each
+message. It writes:
+
+- `ipc_summary.md`: interfaces and messages per direction
+- `ipc_full_table.md`: every interface, grouped by direction
+- `ipc_all_messages_<ref>.md`: every message of every interface
+- `ipc_all_signatures_<ref>.md`: every message with its arguments and reply
+- `ipc_map.json`: all of it, machine-readable
+
+```sh
+$ ipc_tools/ipc_map.py ~/WebKit WebKit-7621.2.5.11.8 out_ipc_map
+[*] Mapping WebKit IPC at WebKit-7621.2.5.11.8
+    [*] Collecting send sites
+        [+] 4561 send sites
+    [*] Parsing *.messages.in (annotation fallback: origin/main at 9c83f601b16c)
+        [+] Parsed 241 files, 3513 messages (the generator's test fixtures included)
+        [*] Directions: 173 annotated, 45 inferred-from-directory, 23 annotated-on-main
+    [*] Building the tables
+        [+] 216 interfaces, 3413 messages, 262 synchronous
+[+] Done: out_ipc_map/ipc_summary.md, ipc_full_table.md, ipc_all_messages_*.md, ipc_all_signatures_*.md, ipc_map.json
+```
+
+The interfaces, messages and signatures always come from the given ref,
+read with WebKit's own `*.messages.in` parser at that ref. An interface's
+direction comes from its `DispatchedFrom` and `DispatchedTo` annotations.
+When the ref lacks them, it comes from the same interface on
+`origin/main`, then from the processes that send its messages, and for a
+few shared interfaces from a table checked by hand for Safari 18.5. The
+log names the `origin/main` commit it used.
+
 EOF

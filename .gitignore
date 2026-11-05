@@ -10,4 +10,8 @@ venv/
 .claude/
 CLAUDE.md
 
+# Output of the tools
+out_ipc_gen*/
+out_ipc_map*/
+
 # EOF
