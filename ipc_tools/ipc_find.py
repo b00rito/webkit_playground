@@ -72,9 +72,11 @@ def grep(repo, ref, fixed, rx, *paths):
     return hits
 
 
-# The interface's line: messages -> RemoteGraphicsContextGL Stream {
+# The interface's line, with an optional namespace, e.g.
+#   messages -> RemoteGraphicsContextGL Stream {
+#   messages -> WebPushD::PushClientConnection NotUsingIPCConnection {
 def find_interfaces(repo, ref, name):
-    rx = rf"messages\s*->\s*{re.escape(name)}\b"
+    rx = rf"messages\s*->\s*(\w+::)?{re.escape(name)}\b"
 
     return grep(repo, ref, name, rx, *MSG_FILES)
 
@@ -132,8 +134,8 @@ def interface_info(repo, ref, path):
     if comment:
         info["from"] = [f"(exception: {comment.group(1)})"]
 
-    # The interface's line: messages -> RemoteGraphicsContextGL Stream {
-    m = re.search(r"messages\s*->\s*(\w+)([^{]*)\{", text)
+    # The interface's line; a namespace is not part of the name
+    m = re.search(r"messages\s*->\s*(?:\w+::)?(\w+)([^{]*)\{", text)
 
     if not m:
         return info
