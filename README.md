@@ -18,5 +18,7 @@ against the Safari 18.5 tag, `WebKit-7621.2.5.11.8`.
 
 - [`ipc_tools/`](ipc_tools/README.md): generate, find and map WebKit's IPC
   messages
+- [`jsc_examples/`](jsc_examples/README.md): small tests that make the
+  `jsc` shell show JavaScriptCore's tiers and Structures
 
 EOF
